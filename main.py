@@ -38,7 +38,7 @@ def interpret_input(user_input, prompt_temp):
     prompt = prompt_temp.format(user_input=user_input)
     try:
         response = model.generate_content(contents=prompt)
-        return response.text.strip()
+        result =  response.text.strip()
         if result == "0":
             print("Twoja odpowiedź była niejasna.")
             user_input = input("Odpowiedz bardziej szczegółowo: ")
@@ -161,25 +161,43 @@ filters = [
     ("Jak często może linieć Twój idealny pies?", filter_shedding),
     ("Jak aktywny powinien być Twój pies?", filter_energy),
     ("Jakie są Twoje oczekiwania wobec podatności psa na tresurę?", filter_trainability),
-    ("Jaki sposób zachowania psa wobec obcych najlepiej by Ci odpowiadał?", filter_demeanor)
+    ("Jaki sposób zachowania psa wobec obcych najlepiej by Ci odpowiadał?", filter_demeanor),
+    ("Jakie cechy charakteru psa są dla Ciebie najważniejsze?", filter_temperament)
 ]
 
 def process_user_input(user_answers):
     """ Przetwarza odpowiedzi użytkownika i zwraca wynik. """
     filtered_dogs = dogs.copy()
-    
-    for i, (question, filter_func) in enumerate(filters):
-        filtered_dogs = filter_func(user_answers[i], filtered_dogs)
-        if filtered_dogs is None:
-            return None, None  
+    print("Rozpoczynanie filtrowania psów.")
 
+    # Iteracja przez filtry
+    for i, (question, filter_func) in enumerate(filters):
+        print(f"Przetwarzanie pytania {i + 1}: {question}")
+        filtered_dogs = filter_func(user_answers[i], filtered_dogs)
+
+        # Sprawdzanie, czy filtr zwrócił None
+        if filtered_dogs is None:
+            print(f"Brak wyników po filtrze {i + 1}: {question}")
+            print("Zwracamy: None, None")
+            return None, None  # 1. return None, None  
+
+    # Sprawdzanie, czy po filtracji są jakiekolwiek psy
     if filtered_dogs is not None and not filtered_dogs.empty:
         breed = filtered_dogs.iloc[0]["breeds"]
         description = filtered_dogs.iloc[0]["description"]
         translated_description = translate_description(description)
         print(f"\nNajlepiej dobrana rasa psa dla Ciebie to {breed}!\n")
         print(translated_description)
+        
+        # Pobieranie zdjęcia psa
         image_url = get_dog_image(breed)
-        return breed, translated_description, image_url
+        print(f"Obrazek dla {breed}: {image_url}")
+
+        print("Zwracamy: breed, translated_description, image_url")
+        return breed, translated_description, image_url  # 2. return breed, translated_description, image_url
     
-    return None, None, None
+    # Jeśli nie ma wyników po filtrach
+    print("Brak psów po przejściu wszystkich filtrów.")
+    print("Zwracamy: None, None")
+    return None, None, None  # 3. return None, None, None
+
